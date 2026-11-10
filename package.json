@@ -1,0 +1,20 @@
+{
+  "name": "odd-one-out-portfolio",
+  "version": "1.0.0",
+  "description": "오리지널 감별국(Odd One Out) 프론트엔드 엔지니어링 포트폴리오 및 딥다이브 케이스 스터디",
+  "scripts": {
+    "start": "npx serve .",
+    "dev": "npx serve ."
+  },
+  "keywords": [
+    "portfolio",
+    "case-study",
+    "frontend-engineer",
+    "vanilla-js",
+    "web-audio-api",
+    "three-js",
+    "performance-optimization"
+  ],
+  "author": "홍주형",
+  "license": "MIT"
+}

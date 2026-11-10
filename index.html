@@ -1,0 +1,1971 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>오리지널 감별국 (Odd One Out) | 프론트엔드 엔지니어링 포트폴리오</title>
+  <meta name="description" content="프레임워크도, 이미지 파일도, 사운드 파일도 없이 26.3KB로 완성한 브라우저 관찰력 게임 포트폴리오 및 딥다이브 트러블슈팅 케이스 스터디">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800;900&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="assets/icon-192.png">
+  <style>
+    /* CSS Reset & Variables */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    :root {
+      --font-sans: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+      --font-mono: 'Fira Code', Consolas, Monaco, monospace;
+      
+      /* Dark Theme (Default) */
+      --bg-primary: #090d16;
+      --bg-secondary: #0f172a;
+      --bg-card: rgba(18, 26, 45, 0.75);
+      --bg-card-hover: rgba(28, 38, 64, 0.85);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-hover: rgba(99, 102, 241, 0.4);
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent-primary: #6366f1;
+      --accent-secondary: #06b6d4;
+      --accent-amber: #f59e0b;
+      --accent-emerald: #10b981;
+      --accent-rose: #f43f5e;
+      --glow-indigo: rgba(99, 102, 241, 0.15);
+      --glow-cyan: rgba(6, 182, 212, 0.15);
+      --card-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+    }
+
+    html.light {
+      --bg-primary: #f8fafc;
+      --bg-secondary: #ffffff;
+      --bg-card: rgba(255, 255, 255, 0.85);
+      --bg-card-hover: rgba(241, 245, 249, 0.95);
+      --border-color: rgba(0, 0, 0, 0.08);
+      --border-hover: rgba(99, 102, 241, 0.5);
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+      --glow-indigo: rgba(99, 102, 241, 0.08);
+      --glow-cyan: rgba(6, 182, 212, 0.08);
+      --card-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.08);
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.65;
+      overflow-x: hidden;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* Container */
+    .container {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Typography & Utilities */
+    h1, h2, h3, h4 {
+      font-weight: 700;
+      line-height: 1.25;
+      letter-spacing: -0.02em;
+    }
+    .gradient-text {
+      background: linear-gradient(135deg, #6366f1 0%, #06b6d4 50%, #10b981 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .gradient-text-alt {
+      background: linear-gradient(135deg, #f43f5e 0%, #f59e0b 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      border: 1px solid currentColor;
+    }
+    .badge-indigo { color: #818cf8; background: rgba(99, 102, 241, 0.1); border-color: rgba(99, 102, 241, 0.25); }
+    .badge-cyan { color: #22d3ee; background: rgba(6, 182, 212, 0.1); border-color: rgba(6, 182, 212, 0.25); }
+    .badge-emerald { color: #34d399; background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.25); }
+    .badge-amber { color: #fbbf24; background: rgba(245, 158, 11, 0.1); border-color: rgba(245, 158, 11, 0.25); }
+    .badge-rose { color: #fb7185; background: rgba(244, 63, 94, 0.1); border-color: rgba(244, 63, 94, 0.25); }
+
+    /* Glassmorphism Card */
+    .glass-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 32px;
+      box-shadow: var(--card-shadow);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+    .glass-card:hover {
+      border-color: var(--border-hover);
+    }
+
+    /* Header Nav */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(9, 13, 22, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      transition: all 0.3s ease;
+    }
+    html.light header {
+      background: rgba(248, 250, 252, 0.85);
+    }
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 72px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text-primary);
+    }
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #6366f1, #06b6d4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 800;
+      font-size: 1.1rem;
+      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+    }
+    .brand-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    .brand-sub {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      display: block;
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      list-style: none;
+    }
+    .nav-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 500;
+      transition: color 0.2s ease;
+    }
+    .nav-links a:hover {
+      color: var(--accent-primary);
+    }
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      border: 1px solid transparent;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      color: #ffffff;
+      box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 22px rgba(99, 102, 241, 0.5);
+    }
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-primary);
+      border-color: var(--border-color);
+    }
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--text-muted);
+      transform: translateY(-2px);
+    }
+    .btn-icon {
+      width: 40px;
+      height: 40px;
+      padding: 0;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      cursor: pointer;
+    }
+
+    /* Hero Section */
+    .hero {
+      position: relative;
+      padding: 80px 0 60px;
+      overflow: hidden;
+    }
+    .hero-glow-1 {
+      position: absolute;
+      top: -100px;
+      left: 10%;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, var(--glow-indigo) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .hero-glow-2 {
+      position: absolute;
+      top: 50px;
+      right: 5%;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, var(--glow-cyan) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 48px;
+      align-items: center;
+      position: relative;
+      z-index: 1;
+    }
+    .hero-content {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    .hero-tagline {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .hero-title {
+      font-size: 3.2rem;
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+    }
+    .hero-desc {
+      font-size: 1.15rem;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+    .hero-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 12px;
+    }
+    .metric-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .metric-val {
+      font-size: 1.75rem;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      color: var(--accent-secondary);
+      letter-spacing: -0.02em;
+    }
+    .metric-label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* Live Preview Mockup Box */
+    .preview-box {
+      background: #020617;
+      border: 1px solid var(--border-color);
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+      display: flex;
+      flex-direction: column;
+    }
+    .preview-header {
+      background: rgba(15, 23, 42, 0.9);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .window-dots {
+      display: flex;
+      gap: 8px;
+    }
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    .dot-red { background: #ef4444; }
+    .dot-yellow { background: #f59e0b; }
+    .dot-green { background: #10b981; }
+    .preview-url {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      background: rgba(0, 0, 0, 0.4);
+      padding: 4px 16px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .preview-body {
+      position: relative;
+      height: 480px;
+      background: #0b1120;
+    }
+    .preview-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    .preview-overlay-link {
+      position: absolute;
+      bottom: 16px;
+      right: 16px;
+      background: rgba(15, 23, 42, 0.92);
+      backdrop-filter: blur(8px);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      color: #38bdf8;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      transition: background 0.2s;
+    }
+    .preview-overlay-link:hover {
+      background: #0284c7;
+      color: #fff;
+    }
+
+    /* Section Styling */
+    section {
+      padding: 90px 0;
+      position: relative;
+    }
+    .section-header {
+      text-align: center;
+      max-width: 760px;
+      margin: 0 auto 60px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+    .section-title {
+      font-size: 2.25rem;
+      letter-spacing: -0.02em;
+    }
+    .section-subtitle {
+      font-size: 1.05rem;
+      color: var(--text-secondary);
+    }
+
+    /* Interactive Difference Lab */
+    .lab-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      align-items: stretch;
+    }
+    .lab-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .axis-selector {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+    }
+    .axis-btn {
+      padding: 10px 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-secondary);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    .axis-btn:hover {
+      background: rgba(99, 102, 241, 0.15);
+      color: var(--text-primary);
+    }
+    .axis-btn.active {
+      background: var(--accent-primary);
+      color: #fff;
+      border-color: var(--accent-primary);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+    }
+    .slider-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 16px 20px;
+      border-radius: 14px;
+      border: 1px solid var(--border-color);
+    }
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+    .slider-header span:last-child {
+      font-family: var(--font-mono);
+      color: var(--accent-secondary);
+      font-weight: 600;
+    }
+    input[type=range] {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: #334155;
+      outline: none;
+      -webkit-appearance: none;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #6366f1;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(99, 102, 241, 0.6);
+    }
+
+    .lab-display {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background: #020617;
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 32px;
+      text-align: center;
+    }
+    .lab-board {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      max-width: 380px;
+      margin: 20px auto;
+      padding: 24px;
+      background: #0a0f1d;
+      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .lab-tile {
+      aspect-ratio: 1;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .lab-tile:hover {
+      background: rgba(255, 255, 255, 0.08);
+      transform: scale(1.04);
+    }
+    .lab-shape {
+      width: 44px;
+      height: 44px;
+      background: #6366f1;
+      border-radius: 8px;
+      transition: all 0.1s ease;
+    }
+    .lab-info-banner {
+      background: rgba(99, 102, 241, 0.1);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      border-radius: 12px;
+      padding: 12px 18px;
+      font-size: 0.85rem;
+      text-align: left;
+      color: #c7d2fe;
+    }
+
+    /* Bento Grid for Engineering Pillars */
+    .bento-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 24px;
+    }
+    .col-span-8 { grid-column: span 8; }
+    .col-span-4 { grid-column: span 4; }
+    .col-span-6 { grid-column: span 6; }
+    .col-span-12 { grid-column: span 12; }
+
+    .pillar-card {
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .pillar-icon-box {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      margin-bottom: 20px;
+    }
+    .pillar-tag {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--accent-secondary);
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+    .pillar-title {
+      font-size: 1.35rem;
+      margin-bottom: 12px;
+    }
+    .pillar-desc {
+      color: var(--text-secondary);
+      font-size: 0.92rem;
+      line-height: 1.65;
+      margin-bottom: 20px;
+    }
+    .code-preview {
+      background: #040814;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 14px 18px;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: #93c5fd;
+      line-height: 1.6;
+      overflow-x: auto;
+    }
+    .code-hl-red { color: #f87171; }
+    .code-hl-green { color: #4ade80; }
+    .code-hl-cyan { color: #38bdf8; }
+
+    /* STAR Troubleshooting Section */
+    .trouble-filters {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 36px;
+      flex-wrap: wrap;
+    }
+    .filter-btn {
+      padding: 8px 18px;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border: 1px solid var(--border-color);
+      background: var(--bg-card);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .filter-btn:hover, .filter-btn.active {
+      background: var(--accent-primary);
+      color: #fff;
+      border-color: var(--accent-primary);
+    }
+    .trouble-list {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    .trouble-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 18px;
+      padding: 28px 32px;
+      transition: all 0.25s ease;
+    }
+    .trouble-card:hover {
+      border-color: rgba(99, 102, 241, 0.4);
+      box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.4);
+    }
+    .trouble-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .trouble-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .trouble-number {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: rgba(99, 102, 241, 0.15);
+      color: #818cf8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+    }
+    .trouble-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+    .star-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-top: 20px;
+    }
+    .star-col {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 14px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .star-badge {
+      font-size: 0.7rem;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      letter-spacing: 0.06em;
+      padding: 2px 8px;
+      border-radius: 4px;
+      width: fit-content;
+    }
+    .badge-s { background: rgba(56, 189, 248, 0.15); color: #38bdf8; }
+    .badge-t { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+    .badge-a { background: rgba(168, 85, 247, 0.15); color: #c084fc; }
+    .badge-r { background: rgba(52, 211, 153, 0.15); color: #34d399; }
+    .star-text {
+      font-size: 0.84rem;
+      color: var(--text-secondary);
+      line-height: 1.55;
+    }
+    .star-lesson {
+      margin-top: 18px;
+      padding: 14px 18px;
+      border-left: 3px solid var(--accent-primary);
+      background: rgba(99, 102, 241, 0.06);
+      border-radius: 0 10px 10px 0;
+      font-size: 0.86rem;
+      color: #e2e8f0;
+      font-style: italic;
+    }
+
+    /* AI Collaboration Section */
+    .ai-collab-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .ai-card {
+      border-radius: 18px;
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-card);
+    }
+    .ai-card.rejected {
+      border-color: rgba(244, 63, 94, 0.3);
+      background: linear-gradient(180deg, rgba(244, 63, 94, 0.05) 0%, var(--bg-card) 100%);
+    }
+    .ai-card.judged {
+      border-color: rgba(99, 102, 241, 0.3);
+      background: linear-gradient(180deg, rgba(99, 102, 241, 0.05) 0%, var(--bg-card) 100%);
+    }
+    .ai-card.delegated {
+      border-color: rgba(16, 185, 129, 0.3);
+      background: linear-gradient(180deg, rgba(16, 185, 129, 0.05) 0%, var(--bg-card) 100%);
+    }
+
+    /* Benchmark Table */
+    .table-container {
+      overflow-x: auto;
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      background: var(--bg-card);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.88rem;
+    }
+    th, td {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    th {
+      background: rgba(0, 0, 0, 0.3);
+      font-weight: 600;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    tr.highlight-row {
+      background: rgba(99, 102, 241, 0.08);
+      font-weight: 600;
+    }
+
+    /* Gallery Grid */
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+    }
+    .gallery-item {
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+      background: #020617;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      position: relative;
+    }
+    .gallery-item:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent-primary);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    }
+    .gallery-img {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.3s ease;
+    }
+    .gallery-item:hover .gallery-img {
+      transform: scale(1.05);
+    }
+    .gallery-caption {
+      padding: 12px 14px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      background: var(--bg-card);
+      border-top: 1px solid var(--border-color);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border-color);
+      padding: 60px 0 40px;
+      background: #050811;
+      text-align: center;
+    }
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-bottom: 24px;
+      list-style: none;
+    }
+    .footer-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover {
+      color: var(--accent-primary);
+    }
+
+    /* Image Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .modal.active {
+      display: flex;
+    }
+    .modal-content {
+      max-width: 90%;
+      max-height: 90%;
+      border-radius: 12px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .modal-close {
+      position: absolute;
+      top: 24px;
+      right: 28px;
+      color: #fff;
+      font-size: 2rem;
+      cursor: pointer;
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .hero-grid, .lab-container { grid-template-columns: 1fr; }
+      .bento-grid { grid-template-columns: 1fr; }
+      .col-span-8, .col-span-4, .col-span-6, .col-span-12 { grid-column: span 1; }
+      .star-grid { grid-template-columns: 1fr 1fr; }
+      .ai-collab-grid { grid-template-columns: 1fr; }
+      .gallery-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 640px) {
+      .hero-title { font-size: 2.3rem; }
+      .hero-metrics { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+      .star-grid { grid-template-columns: 1fr; }
+      .axis-selector { grid-template-columns: repeat(3, 1fr); }
+      .gallery-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <header>
+    <div class="container nav-inner">
+      <a href="#" class="brand">
+        <div class="brand-logo">🔎</div>
+        <div>
+          <span class="brand-title">오리지널 감별국</span>
+          <span class="brand-sub">Odd One Out · Frontend Portfolio</span>
+        </div>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#overview">프로젝트 개요</a></li>
+        <li><a href="#lab">차이 축 시뮬레이터</a></li>
+        <li><a href="#architecture">핵심 아키텍처</a></li>
+        <li><a href="#troubleshooting">트러블슈팅(STAR)</a></li>
+        <li><a href="#ai-collab">AI 협업 & 판단</a></li>
+        <li><a href="#metrics">실측 지표</a></li>
+        <li><a href="#gallery">증거 갤러리</a></li>
+      </ul>
+      <div class="nav-actions">
+        <button id="themeToggle" class="btn-icon" title="다크/라이트 모드 전환">🌓</button>
+        <a href="https://odd-one-out-nine.vercel.app/" target="_blank" class="btn btn-primary">
+          <span>게임 플레이</span>
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero" id="overview">
+    <div class="hero-glow-1"></div>
+    <div class="hero-glow-2"></div>
+    <div class="container hero-grid">
+      <div class="hero-content">
+        <div class="hero-tagline">
+          <span class="badge badge-indigo">1인 프론트엔드 엔지니어링</span>
+          <span class="badge badge-emerald">서버 비용 0원</span>
+          <span class="badge badge-cyan">이미지·음원 0개</span>
+        </div>
+        <h1 class="hero-title">
+          초록불을 의심하고<br>
+          <span class="gradient-text">숫자로 증명하는</span><br>
+          엔지니어의 포트폴리오
+        </h1>
+        <p class="hero-desc">
+          프레임워크, 래스터 이미지, 외부 오디오 라이브러리 없이 <strong>26.3KB 초경량</strong>으로 구현한 브라우저 관찰력 미니게임 <strong>「오리지널 감별국」</strong>입니다.
+          시드 난수 기반 기기 간 동일 문제 동기화, 1px·3° 단위의 수학적 지각 임계값 제어, 1개 rAF 루프 무결점 렌더링을 직접 설계하고 검증했습니다.
+        </p>
+
+        <!-- Metrics -->
+        <div class="hero-metrics">
+          <div class="metric-card">
+            <span class="metric-val">26.3 KB</span>
+            <span class="metric-label">라이브 전송 크기 (Phaser 대비 95%↓)</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-val">1.5 초</span>
+            <span class="metric-label">첫 진입 로딩 시간 (초고속 첫 플레이)</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-val">0 Byte</span>
+            <span class="metric-label">10분 연속 플레이 힙 메모리 누수</span>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:12px; margin-top:8px; flex-wrap:wrap;">
+          <a href="#lab" class="btn btn-primary">
+            <span>🔬 지각 임계값 10종 랩 체험</span>
+          </a>
+          <a href="#troubleshooting" class="btn btn-secondary">
+            <span>🛠️ 8가지 핵심 트러블슈팅</span>
+          </a>
+          <a href="docs/과제제출보고서.pdf" target="_blank" class="btn btn-secondary">
+            <span>📑 제출 보고서(48p) PDF</span>
+          </a>
+          <a href="https://github.com/stulss/odd-one-out" target="_blank" class="btn btn-secondary">
+            <span>💻 GitHub 코드</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Live Preview Device Mockup -->
+      <div class="preview-box">
+        <div class="preview-header">
+          <div class="window-dots">
+            <div class="dot dot-red"></div>
+            <div class="dot dot-yellow"></div>
+            <div class="dot dot-green"></div>
+          </div>
+          <div class="preview-url">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm-1 14.5v-9l6 4.5z"/></svg>
+            https://odd-one-out-nine.vercel.app
+          </div>
+          <span style="font-size:0.75rem; color:#10b981; font-weight:600;">LIVE DEMO</span>
+        </div>
+        <div class="preview-body">
+          <iframe src="https://odd-one-out-nine.vercel.app/" class="preview-iframe" title="오리지널 감별국 라이브 게임"></iframe>
+          <a href="https://odd-one-out-nine.vercel.app/" target="_blank" class="preview-overlay-link">
+            <span>전체 화면으로 플레이</span>
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Difference Lab -->
+  <section id="lab" style="background: rgba(0,0,0,0.15); border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+    <div class="container">
+      <div class="section-header">
+        <span class="badge badge-cyan">Interactive Simulation</span>
+        <h2 class="section-title">10종 차이 축 & 지각 임계값 시뮬레이터</h2>
+        <p class="section-subtitle">
+          "이미지 파일은 축소 시 노이즈로 불공정한 실패를 만듭니다."<br>
+          10가지 차이 축을 CSS/SVG 수치로 제어하고, 인간의 감각 한계(지각 임계값)를 넘지 않도록 수학적으로 설계한 로직을 직접 조작해 보세요.
+        </p>
+      </div>
+
+      <div class="lab-container">
+        <!-- Controls -->
+        <div class="glass-card lab-controls">
+          <div>
+            <label style="font-size:0.85rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:10px;">차이 축 선택 (10종)</label>
+            <div class="axis-selector" id="axisSelector">
+              <button class="axis-btn active" data-axis="rotate">회전</button>
+              <button class="axis-btn" data-axis="hue">색조</button>
+              <button class="axis-btn" data-axis="brightness">밝기</button>
+              <button class="axis-btn" data-axis="scale">크기</button>
+              <button class="axis-btn" data-axis="translate">위치</button>
+              <button class="axis-btn" data-axis="skew">기울기</button>
+              <button class="axis-btn" data-axis="saturate">채도</button>
+              <button class="axis-btn" data-axis="stroke">윤곽선</button>
+              <button class="axis-btn" data-axis="blur">선명도</button>
+              <button class="axis-btn" data-axis="opacity">투명도</button>
+            </div>
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-header">
+              <span>단계 (난이도 곡선)</span>
+              <span id="stageVal">Stage 5 / 25</span>
+            </div>
+            <input type="range" id="stageSlider" min="1" max="25" value="5">
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-header">
+              <span id="deltaLabel">차이 값 (Delta)</span>
+              <span id="deltaVal">15.0°</span>
+            </div>
+            <input type="range" id="deltaSlider" min="1" max="100" value="60">
+          </div>
+
+          <div class="lab-info-banner" id="labInsight">
+            💡 <strong>회전 축 지각 임계값(Threshold): 3.0°</strong><br>
+            25단계 최고 난도에 도달해도 3° 미만으로 떨어지지 않도록 설계하여 "아무도 찾을 수 없는 억까 판"을 원천 차단했습니다.
+          </div>
+        </div>
+
+        <!-- Display Board -->
+        <div class="lab-display">
+          <div>
+            <span style="font-size:0.8rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em;">4 × 4 격자 실시간 렌더링</span>
+            <p style="font-size:0.85rem; color:var(--text-secondary); margin-top:4px;">딱 하나 다른 타일을 찾아 클릭해 보세요!</p>
+          </div>
+
+          <div class="lab-board" id="labBoard">
+            <!-- 16 tiles generated via JS -->
+          </div>
+
+          <div style="font-family:var(--font-mono); font-size:0.8rem; color:var(--text-muted);" id="tileStatus">
+            정답 위치: 7번 타일 · 판정 대기 중
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Core Engineering Pillars (Bento Grid) -->
+  <section id="architecture">
+    <div class="container">
+      <div class="section-header">
+        <span class="badge badge-indigo">Engineering Decisions</span>
+        <h2 class="section-title">타협 없는 4대 아키텍처 설계</h2>
+        <p class="section-subtitle">
+          "렌더 루프가 필요 없는 게임에 무거운 게임 엔진을 쓰면 비용만 남고 이득은 0이다."<br>
+          불필요한 추상화를 걷어내고 브라우저 원초적 성능을 100% 이끌어냈습니다.
+        </p>
+      </div>
+
+      <div class="bento-grid">
+        <!-- Pillar 1: Zero-Resource -->
+        <div class="glass-card pillar-card col-span-8">
+          <div>
+            <div class="pillar-icon-box" style="background:rgba(99, 102, 241, 0.15); color:#818cf8;">⚡</div>
+            <div class="pillar-tag">PILLAR 01 · ZERO RESOURCE RUNTIME</div>
+            <h3 class="pillar-title">이미지 0개 · 음원 0개 · 100% 코드로 합성</h3>
+            <p class="pillar-desc">
+              래스터 이미지(.png/.jpg)는 뷰포트 축소 시 서브픽셀 앤티에일리어싱 노이즈가 발생해 의도치 않은 '가짜 단서'나 '불공정한 실패'를 유발합니다.
+              모든 오브젝트를 SVG 좌표와 CSS 수치로 그려 <strong>1px·3° 단위의 완벽한 수학적 공정성</strong>을 달성했습니다.
+              오디오 파일 없이 <strong>Web Audio API 신디사이저</strong>로 실시간 주파수를 변조해 콤보 음계, 긴장감 BGM, 카운트다운 초침을 합성합니다.
+            </p>
+          </div>
+          <div class="code-preview">
+<span class="code-hl-cyan">// Web Audio API 오실레이터로 화음 & 주파수 실시간 합성 (용량 0 Byte)</span>
+const osc = ctx.createOscillator();
+const gain = ctx.createGain();
+osc.type = 'triangle';
+osc.frequency.setValueAtTime(440 * Math.pow(2, combo / 12), ctx.currentTime);
+gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+osc.connect(gain); gain.connect(ctx.destination); osc.start();
+          </div>
+        </div>
+
+        <!-- Pillar 2: Deterministic Seed RNG -->
+        <div class="glass-card pillar-card col-span-4">
+          <div>
+            <div class="pillar-icon-box" style="background:rgba(6, 182, 212, 0.15); color:#22d3ee;">🎲</div>
+            <div class="pillar-tag">PILLAR 02 · DETERMINISTIC ENGINE</div>
+            <h3 class="pillar-title">서버 0원 "같은 링크 = 동일한 문제"</h3>
+            <p class="pillar-desc">
+              xmur3 해시와 mulberry32 32비트 시드 난수 알고리즘을 결합했습니다.
+              DB나 API 서버 없이 URL 쿼리의 6자리 시드만으로 수천 개의 기기에서 100% 동일한 스테이지를 결정론적으로 재현합니다.
+              날짜는 KST로 고정해 전 세계 어디서 접속해도 동일한 '오늘의 문제'가 열립니다.
+            </p>
+          </div>
+          <div class="code-preview">
+function mulberry32(a) {
+  return function() {
+    let t = a += 0x6D2B79F5;
+    t = Math.imul(t ^ t >>> 15, t | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  }
+}
+          </div>
+        </div>
+
+        <!-- Pillar 3: Single rAF & Clean Separation -->
+        <div class="glass-card pillar-card col-span-6">
+          <div>
+            <div class="pillar-icon-box" style="background:rgba(16, 185, 129, 0.15); color:#34d399;">⏱️</div>
+            <div class="pillar-tag">PILLAR 03 · ZERO RE-RENDER ARCHITECTURE</div>
+            <h3 class="pillar-title">1 Loop rAF & 순수 엔진 분리</h3>
+            <p class="pillar-desc">
+              게임 코어(규칙, 타이머, 스테이지 생성, 통계)는 React를 전혀 모르는 순수 TypeScript(`engine/`)로 격리했습니다.
+              매 프레임(16ms) 갱신되는 프로그레스 바와 파티클은 React Virtual DOM을 거치지 않고 직접 DOM 요소를 조작해 불필요한 리렌더링을 0건으로 통제했습니다.
+            </p>
+          </div>
+          <div class="code-preview">
+<span class="code-hl-green">// useSyncExternalStore로 순수 엔진 스냅샷만 단방향 구독</span>
+export function useEngineSnapshot() {
+  return useSyncExternalStore(
+    gameEngine.subscribe,
+    gameEngine.getSnapshot
+  );
+}
+          </div>
+        </div>
+
+        <!-- Pillar 4: 3D Toon Shading & Shared Context -->
+        <div class="glass-card pillar-card col-span-6">
+          <div>
+            <div class="pillar-icon-box" style="background:rgba(245, 158, 11, 0.15); color:#fbbf24;">🎨</div>
+            <div class="pillar-tag">PILLAR 04 · SHARED WEBGL CONTEXT</div>
+            <h3 class="pillar-title">Three.js 단일 컨텍스트 카툰 셰이딩 3D</h3>
+            <p class="pillar-desc">
+              외부 3D 모델 파일(glTF) 다운로드 없이 기본 프리미티브(Sphere, Capsule, Cone)를 절차적으로 조립했습니다.
+              모바일 브라우저의 WebGL 컨텍스트 고갈 한계를 극복하기 위해 <strong>단 1개의 WebGLRenderer를 모든 캐릭터 인스턴스가 공유</strong>하며,
+              저사양 기기에서는 2D SVG로 자동 폴백(Graceful Degradation)됩니다.
+            </p>
+          </div>
+          <div class="code-preview">
+<span class="code-hl-cyan">// Toon Material + 뒤집은 껍질(Inverted Hull) 만화 외곽선</span>
+const toonMat = new THREE.MeshToonMaterial({ color: skinColor, gradientMap: twoToneTexture });
+const outlineMat = new THREE.MeshBasicMaterial({ color: 0x1e1b4b, side: THREE.BackSide });
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STAR Deep-Dive Troubleshooting -->
+  <section id="troubleshooting" style="background: rgba(0,0,0,0.1);">
+    <div class="container">
+      <div class="section-header">
+        <span class="badge badge-rose">STAR Case Studies</span>
+        <h2 class="section-title">초록불을 의심하는 엔지니어링: 트러블슈팅 8선</h2>
+        <p class="section-subtitle">
+          "항상 통과하는 검사는 검사가 아니라 장식이다."<br>
+          실제 개발 과정에서 맞닥뜨린 난관들을 상황(Situation), 목표(Task), 행동(Action), 결과(Result)와 배운 점으로 투명하게 공개합니다.
+        </p>
+      </div>
+
+      <!-- Category Filter -->
+      <div class="trouble-filters">
+        <button class="filter-btn active" data-filter="all">전체 보기 (8)</button>
+        <button class="filter-btn" data-filter="validation">검증 & 자동화 (3)</button>
+        <button class="filter-btn" data-filter="math">알고리즘 & 수학 (2)</button>
+        <button class="filter-btn" data-filter="rendering">렌더링 & 반응형 (3)</button>
+      </div>
+
+      <div class="trouble-list" id="troubleList">
+
+        <!-- Case 1 -->
+        <div class="trouble-card" data-category="validation">
+          <div class="trouble-card-header">
+            <div class="trouble-title-wrap">
+              <div class="trouble-number">01</div>
+              <div>
+                <h3 class="trouble-title">가짜 초록불의 함정 — 통과하던 검사가 아무것도 검사하지 않고 있었다</h3>
+                <span class="badge badge-rose" style="margin-top:4px;">치명적 결함 발견</span>
+              </div>
+            </div>
+            <span class="badge badge-indigo">자동화 검증 무결성</span>
+          </div>
+
+          <div class="star-grid">
+            <div class="star-col">
+              <span class="star-badge badge-s">S · SITUATION</span>
+              <p class="star-text">
+                두 해상도(390px, 1280px)에서 가로 넘침이 없는지 자동 검사를 실행했고 지속적으로 "넘침 없음(PASS)"을 통과함. 그러나 실제 스크린샷 육안 확인 시 우측 게임판이 잘려 보이는 모순 발생.
+              </p>
+            </div>
+            <div class="star-col">
+              <span class="star-badge badge-t">T · TASK</span>
+              <p class="star-text">
+                검사 코드의 무결성을 검증하고, 스크린샷과 검사 결과가 불일치하는 근본 원인을 파악해 실패할 수 있는 진짜 검증 로직으로 재설계.
+              </p>
+            </div>
+            <div class="star-col">
+              <span class="star-badge badge-a">A · ACTION</span>
+              <p class="star-text">
+                기존 코드 `scrollWidth > innerWidth` 분석: CSS에 `html,body{overflow-x:hidden}`이 있어 넘친 내용이 잘려나가 항상 false 반환 확인.<br>
+                실제 요소 좌표 `board.getBoundingClientRect().right > innerWidth`로 전면 교체.
+              </p>
+            </div>
+            <div class="star-col">
+              <span class="star-badge badge-r">R · RESULT</span>
+              <p class="star-text">
+                390×844 전 구간 11스테이지 재측정 결과 게임판이 16~374px(뷰포트 390px) 내에 존재함을 수학적으로 확정. 결함의 주범이 코드가 아닌 캡처 도구의 뷰포트 왜곡임을 밝혀내는 결정적 계기가 됨.
+              </p>
+            </div>
+          </div>
+
+          <div style="margin-top:16px;">
+            <div style="font-size:0.8rem; font-weight:600; color:var(--text-muted); margin-bottom:6px;">Before vs After 코드 비교</div>
+            <div class="code-preview">
+<span class="code-hl-red">// [BEFORE] overflow-x:hidden 때문에 어떤 상황에서도 false만 나오는 무의미한 검사</span>
+const isOverflowing = document.documentElement.scrollWidth > window.innerWidth;
+
+<span class="code-hl-green">// [AFTER] DOM 실제 경계 박스 좌표와 뷰포트 경계를 직접 1:1 비교하는 무결점 검사</span>
+const board = document.querySelector('.game-board');
+const isOverflowing = board.getBoundingClientRect().right > window.innerWidth;
+            </div>
+          </div>
+
+          <div class="star-lesson">
+            💡 <strong>Insight:</strong> 초록불을 믿기 전에 그 검사가 빨간불이 될 수 있는 검사인지 먼저 확인해야 한다. 항상 통과하는 검사는 검사가 아니라 장식이다. 이후 검증 코드를 짤 때 "이 검사가 실패하는 경우를 하나 만들어볼 수 있나"를 의무화했다.
+          </div>
+        </div>
+
+        <!-- Case 2 -->
+        <div class="trouble-card" data-category="rendering">
+          <div class="trouble-card-header">
+            <div class="trouble-title-wrap">
+              <div class="trouble-number">02</div>
+              <div>
+                <h3 class="trouble-title">반응형 그리드가 핵심 기능(시드 재현성)을 무너뜨렸던 결함</h3>
+                <span class="badge badge-rose" style="margin-top:4px;">설계 철학 충돌</span>
+              </div>
+            </div>
+            <span class="badge badge-cyan">시드 동기화</span>
+          </div>
+
+          <div class="star-grid">
+            <div class="star-col">
+              <span class="star-badge badge-s">S · SITUATION</span>
+              <p class="star-text">
+                "같은 링크는 같은 문제를 본다"가 프로젝트 핵심인데, 화면 너비에 맞춰 칸 수를 동적으로 계산(1280px=48칸, 375px=24칸)하여 기기마다 정답 위치와 스테이지가 달라지는 참사 발생.
+              </p>
+            </div>
+            <div class="star-col">
+              <span class="star-badge badge-t">T · TASK</span>
+              <p class="star-text">
+                모바일 최소 터치 타깃 44px 조작성을 지키면서도, 기기 해상도와 무관하게 모든 디바이스에서 동일한 정답과 칸 배열을 보장.
+              </p>
+            </div>
+            <div class="star-col">
+              <span class="star-badge badge-a">A · ACTION</span>
+              <p class="star-text">
+                그리드 크기 결정권을 뷰포트에서 '스테이지 번호'로 이관. 360px 최소 화면에서도 44px가 보장되는 4×6=24칸을 엄격한 상한선으로 고정하고, 난이도는 칸 수가 아닌 '차이의 미묘함(delta)'으로만 상승하도록 분리.
+              </p>
+            </div>
+            <div class="star-col">
+              <span class="star-badge badge-r">R · RESULT</span>
+              <p class="star-text">
+                동일 시드 25스테이지 전수 일치 100% 달성. 코드 단 3줄 수정으로 아키텍처 결함 해결. 프로토타입 단계 조기 발견으로 재설계 비용 수십 시간 절감.
+              </p>
+            </div>
+          </div>
+
+          <div class="star-lesson">
+            💡 <strong>Insight:</strong> 되돌리기 비싼 결함일수록 일찍 찾아야 한다. 이 결함은 프로토타입 단계에서 3줄로 끝났지만, 공유 기능 배포 후 발견했다면 기능 전체를 뜯어고쳐야 했다. "조작성을 위한 좋은 규칙"이 다른 요구사항을 파괴할 수 있음을 배웠다.
+          </div>
+        </div>
+
+        <!-- Case 3 -->
+        <div class="trouble-card" data-category="validation">
+          <div class="trouble-card-header">
+            <div class="trouble-title-wrap">
+              <div class="trouble-number">03</div>
+              <div>
+                <h3 class="trouble-title">스크린샷 12장이 전부 오류 화면인데 스크립트는 "OK"를 찍었던 사건</h3>
+                <span class="badge badge-amber" style="margin-top:4px;">자동화 스크립트 맹점</span>
+              </div>
+            </div>
+            <span class="badge badge-emerald">QA 자동화</span>
+          </div>
+
+          <div class="star-grid">
+            <div class="star-col">
+              <span class="star-badge badge-s">S · SITUATION</span>
+              <p class="star-text">
+                헤드리스 브라우저로 12장의 증거 스크린샷을 찍었고 콘솔에 12줄 모두 OK가 떴으나, 파일 크기가 완전히 동일해 열어보니 전부 "ERR_CONNECTION_REFUSED" 오류 페이지였음.
+              </p>
+            </div>
+            <div class="star-col">
+              <span class="star-badge badge-t">T · TASK</span>
+              <p class="star-text">
+                샌드박스 환경 네트워크 제약을 해결하고, 스크린샷 자동화 도구가 에러 페이지를 정상 캡처로 오판하지 않도록 방어 체계 구축.
+              </p>
+            </div>
+            <div class="star-col">
+              <span class="star-badge badge-a">A · ACTION</span>
+              <p class="star-text">
+                단순 파일 크기(>2KB) 판정 규칙 폐기. `file://` 프로토콜 기반 무서버 렌더링으로 전환 후, 스크립트에 이미지 바이너리 해시(SHA-256) 중복 검사 로직을 추가하여 동일 이미지가 연속되면 에러 처리.
+              </p>
+            </div>
+            <div class="star-col">
+              <span class="star-badge badge-r">R · RESULT</span>
+              <p class="star-text">
+                총 48장 캡처 중 고유 이미지 48종, 중복 0건을 자동 증명. 이후 캡처 과정에서 발생하는 렌더링 누락을 원천 감지.
+              </p>
+            </div>
+          </div>
+
+          <div class="star-lesson">
+            💡 <strong>Insight:</strong> "스크립트가 성공했다"와 "결과물이 옳다"는 완전히 다른 문장이다. 판정 기준을 느슨하게 잡으면 자동화는 잘못된 결과를 대량으로 양산한다. 산출물은 결국 눈으로 확인해야 한다.
+          </div>
+        </div>
+
+        <!-- Case 4 -->
+        <div class="trouble-card" data-category="math">
+          <div class="trouble-card-header">
+            <div class="trouble-title-wrap">
+              <div class="trouble-number">04</div>
+              <div>
+                <h3 class="trouble-title">smoothstep 난이도 곡선이 만든 플레이 체감의 착시</h3>
+                <span class="badge badge-indigo" style="margin-top:4px;">수학적 모델링</span>
+              </div>
+            </div>
+            <span class="badge badge-amber">게임 밸런스</span>
+          </div>
+
+          <div class="star-grid">
+            <div class="star-col">
+              <span class="star-badge badge-s">S · SITUATION</span>
+              <p class="star-text">
+                수학적으로 부드러운 곡선을 위해 smoothstep(t²(3-2t))을 채택했으나, 1~10단계 진행 동안 회전 차이가 20.0°에서 15.0°로 25%만 감소하여 초중반 난이도가 지나치게 밋밋함.
+              </p>
+            </div>
+            <div class="star-col">
+              <span class="star-badge badge-t">T · TASK</span>
+              <p class="star-text">
+                사용자가 실제로 머무는 핵심 구간(8~15단계)에서 단계마다 난이도 상승을 명확히 체감할 수 있는 현실적 곡선으로 재설계.
+              </p>
+            </div>
+            <div class="star-col">
+              <span class="star-badge badge-a">A · ACTION</span>
+              <p class="star-text">
+                제한 시간이 짧아 대부분 8~15단계에서 게임이 끝난다는 로그 분석. 양 끝이 완만한 smoothstep 대신 구간 선형 보간으로 전격 교체.
+              </p>
+            </div>
+            <div class="star-col">
+              <span class="star-badge badge-r">R · RESULT</span>
+              <p class="star-text">
+                초반 10판의 난이도 변화량이 5.0°에서 6.1°로 정밀 증가하며 판마다 균일하고 팽팽한 긴장감 형성.
+              </p>
+            </div>
+          </div>
+
+          <div class="star-lesson">
+            💡 <strong>Insight:</strong> 수식이 수학적으로 아름다운가보다 "사용자가 실제로 머무는 구간이 어디인가"가 엔지니어링의 본질이다.
+          </div>
+        </div>
+
+        <!-- Case 5 -->
+        <div class="trouble-card" data-category="math">
+          <div class="trouble-card-header">
+            <div class="trouble-title-wrap">
+              <div class="trouble-number">05</div>
+              <div>
+                <h3 class="trouble-title">난이도 슬라이더 T가 플레이어에게 거의 영향을 주지 못했던 결함</h3>
+                <span class="badge badge-amber" style="margin-top:4px;">파라미터 분리</span>
+              </div>
+            </div>
+            <span class="badge badge-indigo">데이터 기반 검증</span>
+          </div>
+
+          <div class="star-grid">
+            <div class="star-col">
+              <span class="star-badge badge-s">S · SITUATION</span>
+              <p class="star-text">
+                난이도 T 슬라이더를 50%나 조정(3.6→5.4)했음에도 10판 자동 시뮬레이션 결과 도달 단계 중앙값이 21.5에서 20.0으로 겨우 1.5단계만 차이남.
+              </p>
+            </div>
+            <div class="star-col">
+              <span class="star-badge badge-t">T · TASK</span>
+              <p class="star-text">
+                난이도 파라미터가 유의미하게 게임 플레이 결과를 변별할 수 있도록 지배 변수(Dominant Factor)를 찾아 연동.
+              </p>
+            </div>
+            <div class="star-col">
+              <span class="star-badge badge-a">A · ACTION</span>
+              <p class="star-text">
+                로그 분석 결과 시간이 부족해서 죽는 시점은 30단계 이후이고, 실제 종료 원인은 '차이(delta)를 눈으로 못 찾는 것'이었음. T를 제한시간 감쇠가 아닌 차이 곡선 공식 `dEase = ease × T / 4.4`에 직접 연결.
+              </p>
+            </div>
+            <div class="star-col">
+              <span class="star-badge badge-r">R · RESULT</span>
+              <p class="star-text">
+                종료 구간(20~25단계)의 차이 여유도 변동폭이 기존 0%p에서 최대 25%p로 확대되어 실제 손잡이로서의 기능 확보.
+              </p>
+            </div>
+          </div>
+
+          <div class="star-lesson">
+            💡 <strong>Insight:</strong> 병목이 발생하는 진짜 축을 모르면 엉뚱한 손잡이를 돌리며 시간을 낭비하게 된다. 자동화 로그를 통해 병목을 규명해야 한다.
+          </div>
+        </div>
+
+        <!-- Case 6 -->
+        <div class="trouble-card" data-category="rendering">
+          <div class="trouble-card-header">
+            <div class="trouble-title-wrap">
+              <div class="trouble-number">06</div>
+              <div>
+                <h3 class="trouble-title">헤드리스 브라우저의 뷰포트 왜곡과 Playwright 교체</h3>
+                <span class="badge badge-cyan" style="margin-top:4px;">도구 신뢰성</span>
+              </div>
+            </div>
+            <span class="badge badge-rose">도구 검증</span>
+          </div>
+
+          <div class="star-grid">
+            <div class="star-col">
+              <span class="star-badge badge-s">S · SITUATION</span>
+              <p class="star-text">
+                모바일 해상도(360×640) 캡처 시 게임판이 잘려 보였으나, 실제 브라우저 실측 좌표는 넘치지 않는 모순이 지속됨.
+              </p>
+            </div>
+            <div class="star-col">
+              <span class="star-badge badge-t">T · TASK</span>
+              <p class="star-text">
+                뷰포트를 인위적으로 크롭하는 결함 도구를 배제하고, 정확한 픽셀 비율(DPR)을 에뮬레이션할 수 있는 도구 확보.
+              </p>
+            </div>
+            <div class="star-col">
+              <span class="star-badge badge-a">A · ACTION</span>
+              <p class="star-text">
+                헤드리스 크롬의 `--window-size` 매개변수가 실제 뷰포트가 아닌 가상 윈도우를 자르는 버그 확인. 브라우저 컨텍스트 뷰포트 제어가 확실한 Playwright로 촬영 파이프라인 전면 교체.
+              </p>
+            </div>
+            <div class="star-col">
+              <span class="star-badge badge-r">R · RESULT</span>
+              <p class="star-text">
+                360×640 해상도에서 4×4 격자 및 UI가 1픽셀 오차 없이 완벽하게 렌더링됨을 증명. 3상태 × 4해상도 = 12장 자동 촬영 파이프라인 완성.
+              </p>
+            </div>
+          </div>
+
+          <div class="star-lesson">
+            💡 <strong>Insight:</strong> 두 측정값이 서로 모순될 때는 둘 중 하나가 아니라 측정 도구 자체를 의심해야 한다.
+          </div>
+        </div>
+
+        <!-- Case 7 -->
+        <div class="trouble-card" data-category="rendering">
+          <div class="trouble-card-header">
+            <div class="trouble-title-wrap">
+              <div class="trouble-number">07</div>
+              <div>
+                <h3 class="trouble-title">제출용 보고서의 이모지 폰트 결손(□ 렌더링) 해결</h3>
+                <span class="badge badge-emerald" style="margin-top:4px;">환경 독립성</span>
+              </div>
+            </div>
+            <span class="badge badge-indigo">크로스 플랫폼</span>
+          </div>
+
+          <div class="star-grid">
+            <div class="star-col">
+              <span class="star-badge badge-s">S · SITUATION</span>
+              <p class="star-text">
+                버튼에 사용한 이모지(🔁, 📤)가 컬러 이모지 폰트가 없는 Linux/Headless PDF 렌더링 환경에서 네모 상자(□)로 깨져 출력됨.
+              </p>
+            </div>
+            <div class="star-col">
+              <span class="star-badge badge-t">T · TASK</span>
+              <p class="star-text">
+                시스템 폰트 환경에 종속되지 않고 어떤 뷰어/인쇄 장치에서도 100% 동일하게 의도를 전달하는 UI 구축.
+              </p>
+            </div>
+            <div class="star-col">
+              <span class="star-badge badge-a">A · ACTION</span>
+              <p class="star-text">
+                "내 화면에선 예쁘다"는 주관적 판단 배제. 환경 의존성이 높은 이모지를 제거하고 명확한 텍스트('다시 하기', '결과 공유') 및 인라인 SVG 아이콘으로 전면 교체.
+              </p>
+            </div>
+            <div class="star-col">
+              <span class="star-badge badge-r">R · RESULT</span>
+              <p class="star-text">
+                모든 PDF 문서 및 스크린샷에서 글리프 깨짐 0건 달성. 발표자료 슬라이드 변환 시 체크마크 글리프 변조 문제도 사전 예방.
+              </p>
+            </div>
+          </div>
+
+          <div class="star-lesson">
+            💡 <strong>Insight:</strong> 산출물이 누구에게 어떤 환경으로 전달되는지에 따라 '사소한 차이'가 '치명적 결함'이 된다. 텍스트와 벡터는 언제나 배신하지 않는다.
+          </div>
+        </div>
+
+        <!-- Case 8 -->
+        <div class="trouble-card" data-category="validation">
+          <div class="trouble-card-header">
+            <div class="trouble-title-wrap">
+              <div class="trouble-number">08</div>
+              <div>
+                <h3 class="trouble-title">부분 수정 후 전체 재검증 누락 방지 프로세스 확립</h3>
+                <span class="badge badge-amber" style="margin-top:4px;">휴먼 에러 방지</span>
+              </div>
+            </div>
+            <span class="badge badge-cyan">프로세스 엔지니어링</span>
+          </div>
+
+          <div class="star-grid">
+            <div class="star-col">
+              <span class="star-badge badge-s">S · SITUATION</span>
+              <p class="star-text">
+                버그를 고친 후 "고쳤다"는 확신만으로 step1, step3만 재실행하고 step2 검증을 누락하여 과거 오류 화면이 그대로 방치된 사실을 뒤늦게 인지.
+              </p>
+            </div>
+            <div class="star-col">
+              <span class="star-badge badge-t">T · TASK</span>
+              <p class="star-text">
+                개발자의 기억력이나 자의적 판단에 의존하지 않는 전수 검증 프로세스 및 체크리스트 자동화.
+              </p>
+            </div>
+            <div class="star-col">
+              <span class="star-badge badge-a">A · ACTION</span>
+              <p class="star-text">
+                코드 내 버튼 목록과 테스트 대상을 1:1 매핑한 15개 인터랙션 전수 체크리스트 스크립트 작성 및 CI 파이프라인에 배치.
+              </p>
+            </div>
+            <div class="star-col">
+              <span class="star-badge badge-r">R · RESULT</span>
+              <p class="star-text">
+                누락 위험 0%. 모든 단계와 인터랙션이 전수 검증 완료 도장을 받아야만 배포되도록 품질 기준 확립.
+              </p>
+            </div>
+          </div>
+
+          <div class="star-lesson">
+            💡 <strong>Insight:</strong> 부분 수정 후 전체 재검증을 건너뛰는 것은 같은 실수의 다른 얼굴이다. 엔지니어의 기억 대신 자동화된 체크리스트를 믿어야 한다.
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Human & AI Collaboration -->
+  <section id="ai-collab">
+    <div class="container">
+      <div class="section-header">
+        <span class="badge badge-emerald">Engineering Judgment</span>
+        <h2 class="section-title">AI와의 협업: 주도적 의사결정의 기록</h2>
+        <p class="section-subtitle">
+          "포트폴리오에 기여도 100%라고 적는 것보다, 무엇을 스스로 판단했는지를 적는 편이 신뢰를 얻습니다."<br>
+          AI의 제안을 무비판적으로 수용하지 않고, 아키텍처 원칙에 따라 반려하고 결정한 실제 기록입니다.
+        </p>
+      </div>
+
+      <div class="ai-collab-grid">
+        <!-- Delegated -->
+        <div class="ai-card delegated">
+          <div>
+            <div class="pillar-icon-box" style="background:rgba(16, 185, 129, 0.15); color:#34d399;">🤖</div>
+            <span class="badge badge-emerald">AI에게 위임한 작업</span>
+            <h3 style="margin-top:10px; font-size:1.15rem;">반복적 코드 작성 및 자동화 테스트</h3>
+          </div>
+          <p style="font-size:0.88rem; color:var(--text-secondary); line-height:1.6;">
+            • 8종 SVG 도형 좌표 및 CSS 테마 변수 매핑 코드 작성<br>
+            • Playwright 기반 3상태 × 4해상도 스크린샷 캡처 스크립트 작성<br>
+            • xmur3 + mulberry32 난수 알고리즘 보일러플레이트 구현<br>
+            • Vitest 순수 로직 단위 테스트 스위트 작성
+          </p>
+          <div style="font-size:0.75rem; color:var(--text-muted); border-top:1px solid var(--border-color); padding-top:12px;">
+            효율성 극대화: 단순 타이핑과 반복 테스트 작성을 위임해 핵심 설계에 집중
+          </div>
+        </div>
+
+        <!-- Judged -->
+        <div class="ai-card judged">
+          <div>
+            <div class="pillar-icon-box" style="background:rgba(99, 102, 241, 0.15); color:#818cf8;">🧠</div>
+            <span class="badge badge-indigo">엔지니어가 직접 판단한 영역</span>
+            <h3 style="margin-top:10px; font-size:1.15rem;">게임 규칙, 공정성, 아키텍처 철학</h3>
+          </div>
+          <p style="font-size:0.88rem; color:var(--text-secondary); line-height:1.6;">
+            • "3초 내 첫 진입"을 위한 게임 엔진(Phaser/Pixi) 전면 배제 결정<br>
+            • 오답 시 '즉사'가 아닌 '시간 -1초' 패널티 설계로 플레이 스트레스 완화<br>
+            • 모바일 44px 터치 보장과 시드 동기화를 위한 4×6 그리드 상한선 확정<br>
+            • React와 게임 엔진의 완전한 분리 원칙 고수
+          </p>
+          <div style="font-size:0.75rem; color:var(--text-muted); border-top:1px solid var(--border-color); padding-top:12px;">
+            제품 본질 확립: 사용자 경험과 기술적 제약 사이의 균형점을 직접 조율
+          </div>
+        </div>
+
+        <!-- Rejected -->
+        <div class="ai-card rejected">
+          <div>
+            <div class="pillar-icon-box" style="background:rgba(244, 63, 94, 0.15); color:#fb7185;">🚫</div>
+            <span class="badge badge-rose">AI의 제안을 단호히 반려한 사례</span>
+            <h3 style="margin-top:10px; font-size:1.15rem;">배포처 복잡도 반려 & 검증 맹점 교정</h3>
+          </div>
+          <p style="font-size:0.88rem; color:var(--text-secondary); line-height:1.6;">
+            • <strong>Cloudflare Pages 제안 반려:</strong> AI가 Wrangler CLI 및 Workers 설정을 제안했으나, 정적 에셋 서빙에 불필요한 러닝커브와 복잡성을 유발한다고 판단하여 단순하고 확실한 Vercel / GitHub Pages로 직관적 반려<br>
+            • <strong>가짜 초록불 검증 코드 기각:</strong> AI가 작성한 `scrollWidth` 검사의 치명적 맹점을 찾아내고 좌표 기반 검사로 전면 재작성 지시
+          </p>
+          <div style="font-size:0.75rem; color:var(--text-muted); border-top:1px solid var(--border-color); padding-top:12px;">
+            비판적 엔지니어링: 생성된 코드를 맹신하지 않고 언제나 실패 가능성을 추적
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Metrics & Benchmarks -->
+  <section id="metrics" style="background: rgba(0,0,0,0.15);">
+    <div class="container">
+      <div class="section-header">
+        <span class="badge badge-cyan">Quantified Evidence</span>
+        <h2 class="section-title">숫자로 증명하는 런타임 성능</h2>
+        <p class="section-subtitle">
+          실제 배포 환경에서 10분간 연속 자동 진행을 수행하고 크롬 DevTools로 실측한 결과입니다.
+        </p>
+      </div>
+
+      <!-- Comparison Table -->
+      <div class="table-container" style="margin-bottom:32px;">
+        <table>
+          <thead>
+            <tr>
+              <th>엔진 / 기술 스택</th>
+              <th>번들 전송 크기</th>
+              <th>첫 플레이 진입 시간</th>
+              <th>메모리 점유율</th>
+              <th>평가 및 채택 여부</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="highlight-row">
+              <td style="color:#38bdf8;"><strong>Vanilla + DOM / Vite (본 프로젝트)</strong></td>
+              <td style="font-family:var(--font-mono); color:#4ade80;"><strong>26.3 KB (Gzip)</strong></td>
+              <td style="font-family:var(--font-mono); color:#4ade80;"><strong>약 1.5초</strong></td>
+              <td style="font-family:var(--font-mono);">극소 (~15 MB)</td>
+              <td><span class="badge badge-emerald">최종 채택 (목표 100% 충족)</span></td>
+            </tr>
+            <tr>
+              <td>PixiJS</td>
+              <td style="font-family:var(--font-mono);">약 140 KB</td>
+              <td style="font-family:var(--font-mono);">약 2.2초</td>
+              <td style="font-family:var(--font-mono);">중간 (~40 MB)</td>
+              <td><span class="badge badge-indigo">기각 (단순 격자에 과도함)</span></td>
+            </tr>
+            <tr>
+              <td>Phaser 3</td>
+              <td style="font-family:var(--font-mono);">약 450 KB</td>
+              <td style="font-family:var(--font-mono);">약 3.5초</td>
+              <td style="font-family:var(--font-mono);">높음 (~80 MB)</td>
+              <td><span class="badge badge-amber">기각 (3초 진입 목표 위반)</span></td>
+            </tr>
+            <tr>
+              <td>Unity WebGL</td>
+              <td style="font-family:var(--font-mono);">15 MB+</td>
+              <td style="font-family:var(--font-mono);">약 15초+</td>
+              <td style="font-family:var(--font-mono);">매우 높음 (~250 MB)</td>
+              <td><span class="badge badge-rose">기각 (웹 이탈률 치명적)</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Stability Proof Metrics -->
+      <div class="bento-grid">
+        <div class="glass-card col-span-4" style="text-align:center;">
+          <div style="font-family:var(--font-mono); font-size:2.5rem; color:#4ade80; font-weight:800;">0 건</div>
+          <div style="font-size:0.95rem; font-weight:600; margin-top:8px;">10분 연속 플레이 콘솔 에러</div>
+          <p style="font-size:0.8rem; color:var(--text-muted); margin-top:6px;">TypeError, Unhandled Promise, 렌더링 에러 전무</p>
+        </div>
+        <div class="glass-card col-span-4" style="text-align:center;">
+          <div style="font-family:var(--font-mono); font-size:2.5rem; color:#38bdf8; font-weight:800;">60 FPS</div>
+          <p style="font-size:0.95rem; font-weight:600; margin-top:8px;">프레임 드랍 0% 유지</p>
+          <p style="font-size:0.8rem; color:var(--text-muted); margin-top:6px;">1 Loop rAF와 React 비연동 직접 DOM 갱신의 힘</p>
+        </div>
+        <div class="glass-card col-span-4" style="text-align:center;">
+          <div style="font-family:var(--font-mono); font-size:2.5rem; color:#c084fc; font-weight:800;">6 종</div>
+          <p style="font-size:0.95rem; font-weight:600; margin-top:8px;">localStorage 손상 방어 매트릭스</p>
+          <p style="font-size:0.8rem; color:var(--text-muted); margin-top:6px;">null, 빈값, 파싱 오류, 타입 누락 시 기본값 100% 복구</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Evidence & Screenshot Gallery -->
+  <section id="gallery">
+    <div class="container">
+      <div class="section-header">
+        <span class="badge badge-indigo">Visual Artifacts</span>
+        <h2 class="section-title">검증 증거 및 스크린샷 갤러리</h2>
+        <p class="section-subtitle">
+          문서와 코드 뒤에 존재하는 실제 측정 데이터와 실행 화면들을 확인하세요.
+        </p>
+      </div>
+
+      <div class="gallery-grid">
+        <div class="gallery-item" onclick="openModal('assets/img/콘솔오류확인.png')">
+          <img src="assets/img/콘솔오류확인.png" class="gallery-img" alt="콘솔 오류 0건 증거">
+          <div class="gallery-caption">콘솔 오류 0건 실측 화면</div>
+        </div>
+        <div class="gallery-item" onclick="openModal('assets/img/stability/t600_10min.png')">
+          <img src="assets/img/stability/t600_10min.png" class="gallery-img" alt="10분 안정성 테스트">
+          <div class="gallery-caption">10분 연속 자동 플레이 안정성</div>
+        </div>
+        <div class="gallery-item" onclick="openModal('assets/img/evidence/resolution_1920x1080.png')">
+          <img src="assets/img/evidence/resolution_1920x1080.png" class="gallery-img" alt="1920x1080 해상도 검증">
+          <div class="gallery-caption">1920×1080 해상도 레이아웃</div>
+        </div>
+        <div class="gallery-item" onclick="openModal('assets/img/evidence/resolution_1366x768.png')">
+          <img src="assets/img/evidence/resolution_1366x768.png" class="gallery-img" alt="1366x768 해상도 검증">
+          <div class="gallery-caption">1366×768 해상도 레이아웃</div>
+        </div>
+        <div class="gallery-item" onclick="openModal('assets/img/actions/02_correct_after.png')">
+          <img src="assets/img/actions/02_correct_after.png" class="gallery-img" alt="정답 인터랙션">
+          <div class="gallery-caption">정답 선택 & 콤보 상승 이펙트</div>
+        </div>
+        <div class="gallery-item" onclick="openModal('assets/img/actions/03_wrong_after.png')">
+          <img src="assets/img/actions/03_wrong_after.png" class="gallery-img" alt="오답 인터랙션">
+          <div class="gallery-caption">오답 화면 흔들림 & 시간 감쇠</div>
+        </div>
+        <div class="gallery-item" onclick="openModal('assets/img/actions/08_gameover_after.png')">
+          <img src="assets/img/actions/08_gameover_after.png" class="gallery-img" alt="게임오버 & Canvas 결과 카드">
+          <div class="gallery-caption">Canvas 결과 공유 카드 생성</div>
+        </div>
+        <div class="gallery-item" onclick="openModal('assets/img/evidence/storage_after_corrupted_still_works.png')">
+          <img src="assets/img/evidence/storage_after_corrupted_still_works.png" class="gallery-img" alt="스토리지 복구">
+          <div class="gallery-caption">localStorage 손상 복구 검증</div>
+        </div>
+      </div>
+
+      <!-- Document Download Area -->
+      <div class="glass-card" style="margin-top:40px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:20px;">
+        <div>
+          <h3 style="font-size:1.2rem;">제출용 정식 보고서 및 슬라이드 원본</h3>
+          <p style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">
+            48페이지 전수 보고서 및 PowerPoint COM 변환 발표자료 PDF를 직접 열람할 수 있습니다.
+          </p>
+        </div>
+        <div style="display:flex; gap:12px; flex-wrap:wrap;">
+          <a href="docs/과제제출보고서.pdf" target="_blank" class="btn btn-primary">
+            <span>📄 과제 제출 보고서 (48p PDF)</span>
+          </a>
+          <a href="docs/발표자료.pdf" target="_blank" class="btn btn-secondary">
+            <span>📊 발표 슬라이드 (PDF)</span>
+          </a>
+          <a href="docs/트러블슈팅.md" target="_blank" class="btn btn-secondary">
+            <span>📝 트러블슈팅 원본 MD</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <ul class="footer-links">
+        <li><a href="https://odd-one-out-nine.vercel.app/" target="_blank">라이브 플레이</a></li>
+        <li><a href="https://github.com/stulss/odd-one-out" target="_blank">GitHub 저장소</a></li>
+        <li><a href="docs/README.md" target="_blank">프로젝트 README</a></li>
+        <li><a href="docs/AI_3줄.md" target="_blank">AI 협업 회고</a></li>
+      </ul>
+      <p style="font-size:0.85rem; color:var(--text-muted);">
+        오리지널 감별국 (Odd One Out) · Frontend Engineering Case Study Portfolio<br>
+        Crafted with Vanilla JS, CSS Glassmorphism & Web APIs.
+      </p>
+    </div>
+  </footer>
+
+  <!-- Modal -->
+  <div id="imageModal" class="modal" onclick="closeModal()">
+    <span class="modal-close">&times;</span>
+    <img id="modalImg" class="modal-content" src="" alt="확대 이미지">
+  </div>
+
+  <script>
+    // Theme Toggle
+    const themeToggle = document.getElementById('themeToggle');
+    themeToggle.addEventListener('click', () => {
+      document.documentElement.classList.toggle('light');
+      themeToggle.textContent = document.documentElement.classList.contains('light') ? '🌙' : '🌓';
+    });
+
+    // Modal
+    function openModal(src) {
+      document.getElementById('modalImg').src = src;
+      document.getElementById('imageModal').classList.add('active');
+    }
+    function closeModal() {
+      document.getElementById('imageModal').classList.remove('active');
+    }
+
+    // Difference Lab Simulator Logic
+    const axisConfig = {
+      rotate: { name: '회전', unit: '°', min: 3, max: 25, defaultDelta: 15, insight: '지각 임계값: 3.0° | 25단계에서도 3° 회전각을 보장해 억까 판을 방지합니다.' },
+      hue: { name: '색조', unit: 'deg', min: 4, max: 40, defaultDelta: 22, insight: '지각 임계값: 4.0deg | 색상환 HSL 공간에서 균일한 인지 차이를 만듭니다.' },
+      brightness: { name: '밝기', unit: '%', min: 5, max: 35, defaultDelta: 18, insight: '지각 임계값: 5.0% | 디스플레이 감마 보정 곡선에 맞춰 밝기를 조절합니다.' },
+      scale: { name: '크기', unit: '%', min: 4, max: 25, defaultDelta: 14, insight: '지각 임계값: 4.0% | 타일 경계를 벗어나지 않는 안전 여백을 유지합니다.' },
+      translate: { name: '위치', unit: 'px', min: 2, max: 12, defaultDelta: 6, insight: '지각 임계값: 2.0px | 1px 미만의 서브픽셀 뭉개짐을 피하도록 정수 단위로 보정합니다.' },
+      skew: { name: '기울기', unit: '°', min: 2, max: 15, defaultDelta: 8, insight: '지각 임계값: 2.0° | 왜곡으로 인한 타일 충돌을 차단합니다.' },
+      saturate: { name: '채도', unit: '%', min: 8, max: 45, defaultDelta: 24, insight: '지각 임계값: 8.0% | 색약/저시력자 모드에서도 변별 가능한 범위를 둡니다.' },
+      stroke: { name: '윤곽선', unit: 'px', min: 1, max: 6, defaultDelta: 3, insight: '지각 임계값: 1.0px | 선 두께 차이로 섬세한 시각 자극을 줍니다.' },
+      blur: { name: '선명도', unit: 'px', min: 0.5, max: 4, defaultDelta: 2, insight: '지각 임계값: 0.5px | 과도한 번짐 없이 미세한 초점 흐림을 줍니다.' },
+      opacity: { name: '투명도', unit: '%', min: 8, max: 40, defaultDelta: 20, insight: '지각 임계값: 8.0% | 배경 대비비(Contrast Ratio)를 준수합니다.' }
+    };
+
+    let currentAxis = 'rotate';
+    let currentStage = 5;
+    let targetIndex = 6; // odd tile index
+
+    const labBoard = document.getElementById('labBoard');
+    const stageSlider = document.getElementById('stageSlider');
+    const stageVal = document.getElementById('stageVal');
+    const deltaSlider = document.getElementById('deltaSlider');
+    const deltaVal = document.getElementById('deltaVal');
+    const deltaLabel = document.getElementById('deltaLabel');
+    const labInsight = document.getElementById('labInsight');
+    const tileStatus = document.getElementById('tileStatus');
+    const axisButtons = document.querySelectorAll('.axis-btn');
+
+    function calculateDelta(axisKey, stage) {
+      const cfg = axisConfig[axisKey];
+      // Linear ease from max to min
+      const t = (stage - 1) / 24;
+      const val = cfg.max - (cfg.max - cfg.min) * t;
+      return Math.round(val * 10) / 10;
+    }
+
+    function renderBoard() {
+      labBoard.innerHTML = '';
+      const cfg = axisConfig[currentAxis];
+      const delta = calculateDelta(currentAxis, currentStage);
+      deltaVal.textContent = delta + cfg.unit;
+      deltaLabel.textContent = cfg.name + ' 차이 값 (Delta)';
+
+      for (let i = 0; i < 16; i++) {
+        const tile = document.createElement('div');
+        tile.className = 'lab-tile';
+        const shape = document.createElement('div');
+        shape.className = 'lab-shape';
+
+        if (i === targetIndex) {
+          applyDifference(shape, currentAxis, delta);
+        }
+
+        tile.appendChild(shape);
+        tile.addEventListener('click', () => {
+          if (i === targetIndex) {
+            tileStatus.innerHTML = '<span style="color:#4ade80; font-weight:700;">🎉 정답입니다! 정확히 다른 타일을 찾았습니다!</span>';
+            shape.style.boxShadow = '0 0 16px #4ade80';
+            setTimeout(() => {
+              targetIndex = Math.floor(Math.random() * 16);
+              renderBoard();
+              tileStatus.textContent = '새로운 타일 배치 완료! 찾아보세요.';
+            }, 1000);
+          } else {
+            tileStatus.innerHTML = '<span style="color:#f87171; font-weight:700;">❌ 오답입니다. (남은 시간 -1초 효과)</span>';
+            tile.style.background = 'rgba(239, 68, 68, 0.2)';
+            setTimeout(() => { tile.style.background = ''; }, 400);
+          }
+        });
+
+        labBoard.appendChild(tile);
+      }
+    }
+
+    function applyDifference(el, axis, delta) {
+      switch (axis) {
+        case 'rotate': el.style.transform = `rotate(${delta}deg)`; break;
+        case 'hue': el.style.filter = `hue-rotate(${delta}deg)`; break;
+        case 'brightness': el.style.filter = `brightness(${100 + delta}%)`; break;
+        case 'scale': el.style.transform = `scale(${1 + delta / 100})`; break;
+        case 'translate': el.style.transform = `translate(${delta}px, -${delta}px)`; break;
+        case 'skew': el.style.transform = `skew(${delta}deg)`; break;
+        case 'saturate': el.style.filter = `saturate(${100 - delta}%)`; break;
+        case 'stroke': el.style.border = `${delta}px solid #ffffff`; break;
+        case 'blur': el.style.filter = `blur(${delta}px)`; break;
+        case 'opacity': el.style.opacity = `${(100 - delta) / 100}`; break;
+      }
+    }
+
+    axisButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        axisButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentAxis = btn.dataset.axis;
+        labInsight.innerHTML = `💡 <strong>${axisConfig[currentAxis].name} 축 지각 임계값:</strong> ${axisConfig[currentAxis].insight}`;
+        renderBoard();
+      });
+    });
+
+    stageSlider.addEventListener('input', (e) => {
+      currentStage = parseInt(e.target.value);
+      stageVal.textContent = `Stage ${currentStage} / 25`;
+      renderBoard();
+    });
+
+    // Troubleshooting Filter
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    const troubleCards = document.querySelectorAll('.trouble-card');
+
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const filter = btn.dataset.filter;
+
+        troubleCards.forEach(card => {
+          if (filter === 'all' || card.dataset.category === filter) {
+            card.style.display = 'block';
+          } else {
+            card.style.display = 'none';
+          }
+        });
+      });
+    });
+
+    // Initial render
+    renderBoard();
+  </script>
+</body>
+</html>
